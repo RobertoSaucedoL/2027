@@ -1371,6 +1371,34 @@
       return JSON.parse(JSON.stringify(obj));
     }
 
+    let pendingRenderFrame = 0;
+    let pendingRebuildControls = false;
+
+    function scheduleRender(rebuildControls = false) {
+      pendingRebuildControls = pendingRebuildControls || rebuildControls;
+      if (pendingRenderFrame) return;
+
+      pendingRenderFrame = window.requestAnimationFrame(() => {
+        const rebuild = pendingRebuildControls;
+        pendingRenderFrame = 0;
+        pendingRebuildControls = false;
+        renderAll(rebuild);
+      });
+    }
+
+    function cancelScheduledRender() {
+      if (pendingRenderFrame) window.cancelAnimationFrame(pendingRenderFrame);
+      pendingRenderFrame = 0;
+      pendingRebuildControls = false;
+    }
+
+    function flushScheduledRender() {
+      if (!pendingRenderFrame) return;
+      const rebuild = pendingRebuildControls;
+      cancelScheduledRender();
+      renderAll(rebuild);
+    }
+
     function scenarioList() {
       const base = Object.values(presets).sort((a, b) => a.order - b.order);
       return [...base, ...state.saved];
@@ -1729,6 +1757,7 @@
     }
 
     function selectScenario(id) {
+      cancelScheduledRender();
       state.activeId = id;
       state.customDrivers = activeDrivers();
       renderAll(true);
@@ -1905,7 +1934,7 @@
           else input.value = state.customDrivers[key];
         }
       });
-      renderAll(key === "seasonalityId" || key === "specialSalesOn");
+      scheduleRender(key === "seasonalityId" || key === "specialSalesOn");
     }
 
     function updateDriverReadouts() {
@@ -2148,6 +2177,7 @@
     }
 
     function savePdf() {
+      flushScheduledRender();
       const scenario = activeScenario();
       const shared = document.querySelector(".tables-x-scroll");
       const previousScroll = shared ? shared.scrollLeft : 0;
@@ -2163,6 +2193,7 @@
     }
 
     function resetScenario() {
+      cancelScheduledRender();
       delete state.scenarioEdits[state.activeId];
       state.customDrivers = activeDrivers();
       renderAll(true);
@@ -2171,10 +2202,15 @@
     function setupSharedScrollLock() {
       const shared = document.querySelector(".tables-x-scroll");
       if (!shared) return;
+      let scrollFrame = 0;
       const update = () => {
+        scrollFrame = 0;
         shared.style.setProperty("--shared-scroll-x", `${shared.scrollLeft}px`);
       };
-      shared.addEventListener("scroll", update, { passive: true });
+      shared.addEventListener("scroll", () => {
+        if (scrollFrame) return;
+        scrollFrame = window.requestAnimationFrame(update);
+      }, { passive: true });
       update();
     }
 
@@ -2188,4 +2224,3 @@
   </script>
 </body>
 </html>
-
