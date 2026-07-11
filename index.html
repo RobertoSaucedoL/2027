@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PORTA - ER + Flujo - Escenarios 2027</title>
+  <title>PORTA - ER + Flujo - Escenarios 2026-2029</title>
   <style>
     :root {
       --ink: #111b26;
@@ -655,6 +655,80 @@
       border-top: 1px solid var(--line);
       padding-top: 14px;
     }
+    .strat-kpis {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 10px;
+      padding: 12px 14px 0;
+    }
+    .strat-kpis .kpi { min-height: 88px; }
+    .strat-levers {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 12px;
+      padding: 12px 14px;
+      align-items: start;
+    }
+    .lever { display: grid; gap: 5px; align-content: start; }
+    .lever label { font-weight: 800; color: var(--ink-2); font-size: 11px; text-transform: uppercase; }
+    .lever .lever-value { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .lever input[type="range"] { width: 100%; accent-color: var(--gold); }
+    .lever select {
+      min-height: 32px; border: 1px solid var(--line); border-radius: 6px;
+      background: #fff; color: var(--ink); font-weight: 750; padding: 0 8px;
+    }
+    .strat-subhead {
+      margin: 14px 14px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--ink);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .strat-subhead h3 { margin: 0; font-size: 12.5px; text-transform: uppercase; font-weight: 900; color: var(--ink); }
+    .strat-subhead span { color: var(--muted); font-size: 11px; font-family: var(--mono); }
+    .strat-diag {
+      margin: 10px 14px 4px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--gold);
+      border-radius: 6px;
+      background: #fffdf6;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--ink-2);
+    }
+    .strat-diag strong { color: var(--ink); font-family: var(--mono); }
+    .strat-table-wrap { padding: 10px 14px 4px; }
+    table.strat-table { min-width: 0; width: 100%; }
+    table.strat-table th:first-child, table.strat-table td:first-child {
+      position: static; width: auto; min-width: 150px; max-width: none; box-shadow: none;
+      white-space: normal;
+    }
+    table.strat-table td { white-space: normal; text-align: left; line-height: 1.35; }
+    table.strat-table td.num { text-align: right; font-family: var(--mono); font-weight: 800; white-space: nowrap; }
+    .pill {
+      display: inline-block; padding: 2px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .pill.ok { background: rgba(45,117,90,0.14); color: var(--positive); }
+    .pill.warn { background: rgba(201,130,0,0.16); color: var(--gold); }
+    .pill.risk { background: rgba(169,71,52,0.14); color: var(--red); }
+    .strat-footer-space { height: 14px; }
+    @media (max-width: 1180px) {
+      .strat-kpis { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
+      .strat-levers { grid-template-columns: 1fr 1fr; }
+    }
+    @media print {
+      .strat-levers .btn { display: none !important; }
+      .strat-kpis { padding: 4px 6px 0; gap: 4px; }
+      .strat-diag { font-size: 6.5px; margin: 4px 6px; padding: 4px 6px; }
+      .strat-subhead { margin: 6px 6px 0; }
+      .strat-subhead h3 { font-size: 8px; }
+      table.strat-table { font-size: 6.1px; }
+    }
     @media print {
       @page {
         size: A4 landscape;
@@ -884,7 +958,7 @@
     <main>
       <header class="topbar">
         <div>
-          <p class="eyebrow">ER + Flujo · Cierre 2026 y escenarios 2027</p>
+          <p class="eyebrow">ER + Flujo · Cierre 2026 (Ene-Jun real), Ppto 2027 y proyecciones 2028-2029</p>
           <h1 id="pageTitle">Ppto 2027 - escenario vivo</h1>
           <div class="verdict" id="verdict"></div>
         </div>
@@ -942,6 +1016,94 @@
                     <table id="cashTable"></table>
                   </div>
                 </section>
+                <section class="panel" id="stratPanel">
+                  <div class="panel-header">
+                    <h2 class="panel-title">Notas estrategicas · palancas de crecimiento y disciplina de caja</h2>
+                    <div class="panel-note">Anclado al Plan Estrategico 2027-2029 (BSC) · cifras en $M</div>
+                  </div>
+                  <div class="strat-subhead">
+                    <h3>1 · Moldes: cuanto invertir para que crecimiento</h3>
+                    <span>Evidencia 2025: 8 moldes · $2.1M · $14.0M de venta · margen neto real 3-6% + capital de trabajo</span>
+                  </div>
+                  <div class="strat-kpis" id="moldeKpis"></div>
+                  <div class="strat-levers">
+                    <div class="lever">
+                      <label for="moldeInv">Inversion en moldes ($M)</label>
+                      <input id="moldeInv" type="range" min="0" max="15" step="0.1" value="2.1">
+                      <span class="lever-value" id="moldeInvValue"></span>
+                    </div>
+                    <div class="lever">
+                      <label for="moldeNet">Margen neto de moldes (%)</label>
+                      <input id="moldeNet" type="range" min="3" max="6" step="0.5" value="4.5">
+                      <span class="lever-value" id="moldeNetValue"></span>
+                    </div>
+                    <div class="lever">
+                      <label for="moldeYear">Ano destino</label>
+                      <select id="moldeYear">
+                        <option value="esc1" selected>Ppto 2027</option>
+                        <option value="esc2028">Proyeccion 2028</option>
+                        <option value="esc2029">Proyeccion 2029</option>
+                      </select>
+                      <span class="lever-value" id="moldeYearValue"></span>
+                    </div>
+                    <div class="lever">
+                      <label>Resultado</label>
+                      <span class="lever-value" id="moldeResult" style="font-size:13px;color:var(--ink);"></span>
+                    </div>
+                    <div class="lever">
+                      <label>Llevar al modelo</label>
+                      <button class="btn secondary" id="moldeApplyBtn" type="button">Aplicar al ano destino</button>
+                      <span class="lever-value">suma ventas y fija pp de nuevos productos</span>
+                    </div>
+                  </div>
+                  <div class="strat-diag" id="moldeDiag"></div>
+                  <div class="strat-subhead">
+                    <h3>2 · Ticket promedio: cada peso vale millones</h3>
+                    <span>Observacion: 2025 $15.2 · 2026 $15.3 (+0.7%)</span>
+                  </div>
+                  <div class="strat-kpis" id="ticketKpis"></div>
+                  <div class="strat-levers">
+                    <div class="lever">
+                      <label for="ticketDelta">Incremento al ticket ($)</label>
+                      <input id="ticketDelta" type="range" min="0" max="5" step="0.1" value="1.0">
+                      <span class="lever-value" id="ticketDeltaValue"></span>
+                    </div>
+                    <div class="lever" style="grid-column: span 3;">
+                      <label>Lectura</label>
+                      <span class="lever-value" id="ticketResult" style="font-size:13px;color:var(--ink);"></span>
+                    </div>
+                  </div>
+                  <div class="strat-subhead">
+                    <h3>3 · Disciplina de caja: partidas que distraen el flujo</h3>
+                    <span>$11.6M identificados fuera de la operacion + $2.1M de CAPEX moldes (inversion, no fuga)</span>
+                  </div>
+                  <div class="strat-table-wrap">
+                    <table class="strat-table" id="cashDrainTable"></table>
+                  </div>
+                  <div class="strat-subhead">
+                    <h3>4 · Calibracion de metas: aspiracion del accionista vs capacidad demostrada</h3>
+                    <span>BSC: ≥25% · >30% | Industria plasticos hogar: mercado ~6% anual · EBITDA 10-18% | Real Ene-Jun: 12.2%</span>
+                  </div>
+                  <div class="strat-kpis" id="goalKpis"></div>
+                  <div class="strat-levers">
+                    <div class="lever">
+                      <label for="goalGrowth">Meta de crecimiento (%)</label>
+                      <input id="goalGrowth" type="range" min="0" max="30" step="0.5" value="12">
+                      <span class="lever-value" id="goalGrowthValue"></span>
+                    </div>
+                    <div class="lever">
+                      <label for="goalEbitda">Meta de EBITDA (%)</label>
+                      <input id="goalEbitda" type="range" min="8" max="35" step="0.5" value="15">
+                      <span class="lever-value" id="goalEbitdaValue"></span>
+                    </div>
+                    <div class="lever" style="grid-column: span 2;">
+                      <label>Veredicto</label>
+                      <span class="lever-value" id="goalVerdict" style="font-size:13px;color:var(--ink);"></span>
+                    </div>
+                  </div>
+                  <div class="strat-diag" id="goalDiag"></div>
+                  <div class="strat-footer-space"></div>
+                </section>
               </div>
             </div>
           </div>
@@ -965,7 +1127,7 @@
       </section>
       <footer class="footer">
         <span>PORTA · Documento interno CFO</span>
-        <span>Base: PDF "PORTA - ER y Flujo - Escenarios 2027_v3.pdf"</span>
+        <span>Base: ER JUNIO 2026 real · actualizado 10-jul-2026</span>
       </footer>
     </main>
   </div>
@@ -990,39 +1152,40 @@
         id: "cierre2026",
         order: 1,
         year: "2026",
-        lockedActualMonths: 5,
+        lockedActualMonths: 6,
         label: "Cierre 2026",
         short: "Cierre",
-        subtitle: "Base historica proyectada",
-        verdict: "Cierre 2026: ventas $178.0M, EBITDA final $42.3M (23.8%), FCF $13.3M. Ene-May reales (ER MAYO); incluye ahorro por desvinculaciones y costo unico.",
+        subtitle: "Ene-Jun reales (ER JUNIO)",
+        verdict: "Cierre 2026: ventas $173.6M, EBITDA final $39.4M (22.7%), FCF $11.3M. Ene-Jun reales (ER JUNIO); junio real: ventas $16.5M, EBITDA operativo $3.4M, BAI $3.3M.",
         er: {
-          sales: pdf([177958, 12100, 17409, 13503, 19951, 17655, 19067, 20836, 16669, 10451, 12329, 10803, 7185]),
-          cogs: pdf([-83348, -5721, -8231, -6384, -9433, -8348, -9015, -9851, -8038, -4500, -5468, -4777, -3582]),
-          gross: pdf([94609, 6379, 9178, 7119, 10518, 9308, 10052, 10984, 8631, 5951, 6861, 6025, 3603]),
-          payroll: pdf([-28507, -1873, -1957, -1895, -1997, -1961, -2378, -2399, -2776, -3103, -2500, -3060, -2608]),
-          savings: pdf([2892, 535, 535, 535, 535, 535, 140, 74, 0, 0, 0, 0, 0]),
-          freight: pdf([-12268, -728, -1048, -813, -1201, -1063, -1148, -1254, -1721, -1268, -1047, -393, -584]),
-          rent: pdf([-5742, -472, -472, -472, -472, -472, -472, -472, -488, -488, -488, -488, -486]),
-          other: pdf([-6721, -499, -520, -531, -527, -515, -531, -560, -680, -595, -744, -572, -447]),
-          totalOpex: pdf([-50449, -3037, -3461, -3176, -3662, -3476, -4390, -4612, -5765, -5454, -4778, -4512, -4126]),
-          ebitdaOp: pdf([44160, 3342, 5716, 3943, 6856, 5832, 5662, 6373, 2866, 497, 2083, 1513, -523]),
-          financial: pdf([-1845, -121, -174, -135, -200, -177, -191, -208, -51, 90, -284, -242, -152]),
-          ebitdaFinal: pdf([42316, 3221, 5542, 3808, 6657, 5655, 5472, 6164, 2815, 586, 1799, 1271, -674])
+          sales: pdf([173630, 12100, 17409, 13503, 19951, 17655, 19067, 16508, 16669, 10451, 12329, 10803, 7185]),
+          cogs: pdf([-80279, -5721, -8231, -6384, -9433, -8348, -9015, -6782, -8038, -4500, -5468, -4777, -3582]),
+          gross: pdf([93351, 6379, 9178, 7119, 10518, 9308, 10052, 9726, 8631, 5951, 6861, 6025, 3603]),
+          payroll: pdf([-29414, -1873, -1957, -1895, -1997, -1961, -2378, -3306, -2776, -3103, -2500, -3060, -2608]),
+          savings: pdf([2818, 535, 535, 535, 535, 535, 140, 0, 0, 0, 0, 0, 0]),
+          freight: pdf([-12589, -728, -1048, -813, -1201, -1063, -1148, -1575, -1721, -1268, -1047, -393, -584]),
+          rent: pdf([-5758, -472, -472, -472, -472, -472, -472, -488, -488, -488, -488, -488, -486]),
+          other: pdf([-7203, -499, -520, -531, -527, -515, -531, -942, -780, -595, -744, -572, -447]),
+          totalOpex: pdf([-52149, -3037, -3461, -3176, -3662, -3476, -4390, -6312, -5765, -5454, -4778, -4512, -4126]),
+          ebitdaOp: pdf([41201, 3342, 5716, 3943, 6856, 5832, 5662, 3414, 2866, 497, 2083, 1513, -523]),
+          financial: pdf([-1799, -121, -174, -135, -200, -177, -191, -162, -51, 90, -284, -242, -152]),
+          ebitdaFinal: pdf([39404, 3221, 5542, 3808, 6657, 5655, 5472, 3252, 2815, 586, 1799, 1271, -674])
         },
         flow: {
           dso: pdf([89, 90, 90, 90, 90, 90, 90, 90, 90, 89, 95, 70, 90]),
           dio: pdf([134, 95, 95, 95, 95, 95, 95, 95, 120, 232, 166, 199, 224]),
           dpo: pdf([88, 90, 90, 90, 90, 90, 90, 90, 90, 95, 75, 75, 90]),
           ccc: pdf([135, 95, 95, 95, 95, 95, 95, 95, 120, 226, 186, 194, 224]),
-          ebitdaBase: pdf([44262, 3532, 5925, 4114, 7077, 6047, 5575, 6195, 2815, 586, 1799, 1271, -674]),
-          savings: pdf([2892, 535, 535, 535, 535, 535, 140, 74, 0, 0, 0, 0, 0]),
-          severance: pdf([-2185, 0, 0, 0, 0, -1641, -349, -195, 0, 0, 0, 0, 0]),
-          ebitdaAdjusted: pdf([44969, 4067, 6461, 4649, 7613, 4941, 5366, 6075, 2815, 586, 1799, 1271, -674]),
-          taxes: pdf([-13801, -1006, -1975, -1225, -2461, -2029, -1596, -1805, -845, -167, -531, -372, 211]),
+          ebitdaBase: pdf([41319, 3532, 5925, 4114, 7077, 6047, 5575, 3252, 2815, 586, 1799, 1271, -674]),
+          savings: pdf([2818, 535, 535, 535, 535, 535, 140, 0, 0, 0, 0, 0, 0]),
+          severance: pdf([-1990, 0, 0, 0, 0, -1641, -349, 0, 0, 0, 0, 0, 0]),
+          ebitdaAdjusted: pdf([42147, 4067, 6461, 4649, 7613, 4941, 5366, 3252, 2815, 586, 1799, 1271, -674]),
+          taxes: pdf([-12972, -1006, -1975, -1225, -2461, -2029, -1596, -976, -845, -167, -531, -372, 211]),
           workingCapital: pdf([-17839, 16601, -12214, 20165, -7180, 4415, 5531, -6943, -6770, 4254, -10765, -7368, -17565]),
           capex: zero(),
-          fcf: pdf([13330, 19662, -7729, 23590, -2029, 7328, 9301, -2673, -4800, 4674, -9497, -6469, -18028]),
-          fcfAccum: pdf([0, 13330, -6332, 1397, -22193, -20164, -27492, -36793, -34120, -29320, -33994, -24497, -18028])
+          inversiones: zero(),
+          fcf: pdf([11336, 19662, -7729, 23590, -2029, 7328, 9301, -4667, -4800, 4674, -9497, -6469, -18028]),
+          fcfAccum: pdf([0, 11336, -8326, -597, -24187, -22158, -29486, -38787, -34120, -29320, -33994, -24497, -18028])
         }
       },
       esc1: {
@@ -1060,76 +1223,6 @@
           fcfAccum: pdf([62968, 62968, 51725, 54099, 40658, 39789, 33480, 26241, 25028, 34271, 28012, 26570, 28680])
         }
       },
-      esc2: {
-        id: "esc2",
-        order: 3,
-        year: "2027",
-        label: "ESC2 - ventas planas",
-        short: "ESC2",
-        subtitle: "Mismo ER, caja difiere",
-        verdict: "ESC2 2027: mismo ER que Ppto 2027 (30.1%); difiere en capital de trabajo. FCF $44.3M.",
-        er: {
-          sales: pdf([189879, 15372, 16216, 15595, 16620, 16255, 16479, 16760, 16407, 15084, 15378, 15139, 14573]),
-          cogs: pdf([-85446, -6918, -7297, -7018, -7479, -7315, -7416, -7542, -7383, -6788, -6920, -6813, -6558]),
-          gross: pdf([104433, 8455, 8919, 8577, 9141, 8940, 9064, 9218, 9024, 8296, 8458, 8327, 8015]),
-          payroll: pdf([-21623, -1802, -1802, -1802, -1802, -1802, -1802, -1802, -1802, -1802, -1802, -1802, -1802]),
-          savings: zero(),
-          freight: pdf([-11393, -922, -973, -936, -997, -975, -989, -1006, -984, -905, -923, -908, -874]),
-          rent: pdf([-6911, -576, -576, -576, -576, -576, -576, -576, -576, -576, -576, -576, -576]),
-          other: pdf([-5447, -454, -454, -454, -454, -454, -454, -454, -454, -454, -454, -454, -454]),
-          totalOpex: pdf([-45374, -3754, -3805, -3767, -3829, -3807, -3821, -3837, -3816, -3737, -3754, -3740, -3706]),
-          ebitdaOp: pdf([59059, 4701, 5114, 4810, 5312, 5133, 5243, 5381, 5208, 4560, 4703, 4586, 4309]),
-          financial: pdf([-1899, -154, -162, -156, -166, -163, -165, -168, -164, -151, -154, -151, -146]),
-          ebitdaFinal: pdf([57161, 4547, 4952, 4654, 5146, 4971, 5078, 5213, 5044, 4409, 4550, 4435, 4163])
-        },
-        flow: {
-          dso: pdf([75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 78]),
-          dio: pdf([73, 70, 70, 70, 70, 70, 70, 70, 70, 70, 75, 82, 88]),
-          dpo: pdf([90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]),
-          ccc: pdf([58, 55, 55, 55, 55, 55, 55, 55, 55, 55, 60, 67, 76]),
-          ebitdaBase: pdf([57161, 4547, 4952, 4654, 5146, 4971, 5078, 5213, 5044, 4409, 4550, 4435, 4163]),
-          taxes: pdf([-17040, -1355, -1477, -1387, -1535, -1482, -1514, -1555, -1504, -1314, -1356, -1322, -1240]),
-          workingCapital: pdf([4226, 1844, -1357, 2240, -798, 491, 614, -771, -2893, 1847, 1041, 1396, 572]),
-          capex: zero(),
-          fcf: pdf([44346, 5036, 2118, 5507, 2813, 3979, 4178, 2887, 646, 4942, 4234, 4509, 3495]),
-          fcfAccum: pdf([59352, 59352, 54316, 52197, 46690, 43877, 39898, 35720, 32833, 32187, 27245, 23010, 18501])
-        }
-      },
-      stress: {
-        id: "stress",
-        order: 4,
-        year: "2027",
-        label: "Estrés 2027",
-        short: "Estrés",
-        subtitle: "Ventas $166.0M",
-        verdict: "Estrés 2027: ventas $166.0M, EBITDA final $35.4M (21.3%), FCF $11.3M. La estructura fija de nomina y rentas castiga el margen.",
-        er: {
-          sales: pdf([165990, 10890, 15668, 12153, 17956, 15890, 17160, 18752, 16754, 10451, 12329, 10803, 7185]),
-          cogs: pdf([-77534, -5149, -7408, -5746, -8490, -7513, -8114, -8866, -7921, -4500, -5468, -4777, -3582]),
-          gross: pdf([88456, 5741, 8260, 6407, 9466, 8377, 9047, 9886, 8832, 5951, 6861, 6025, 3603]),
-          payroll: pdf([-28243, -1873, -1957, -1895, -1997, -1961, -2378, -2399, -2512, -3103, -2500, -3060, -2608]),
-          savings: zero(),
-          freight: pdf([-10830, -656, -943, -732, -1081, -957, -1033, -1129, -1009, -1268, -1047, -393, -584]),
-          rent: pdf([-5728, -472, -472, -472, -472, -472, -472, -472, -472, -488, -488, -488, -486]),
-          other: pdf([-6627, -499, -520, -531, -527, -515, -531, -560, -586, -595, -744, -572, -447]),
-          totalOpex: pdf([-51428, -3500, -3892, -3630, -4077, -3905, -4415, -4560, -4579, -5454, -4778, -4512, -4126]),
-          ebitdaOp: pdf([37028, 2241, 4368, 2777, 5389, 4472, 4632, 5326, 4254, 497, 2083, 1513, -523]),
-          financial: pdf([-1660, -109, -157, -122, -180, -159, -172, -188, -168, -105, -123, -108, -72]),
-          ebitdaFinal: pdf([35368, 2133, 4211, 2655, 5210, 4313, 4460, 5138, 4086, 392, 1959, 1405, -594])
-        },
-        flow: {
-          dso: pdf([89, 90, 90, 90, 90, 90, 90, 90, 90, 89, 95, 70, 90]),
-          dio: pdf([132, 95, 95, 95, 95, 95, 95, 95, 95, 232, 166, 199, 224]),
-          dpo: pdf([88, 90, 90, 90, 90, 90, 90, 90, 90, 95, 75, 75, 90]),
-          ccc: pdf([132, 95, 95, 95, 95, 95, 95, 95, 95, 226, 186, 194, 224]),
-          ebitdaBase: pdf([35368, 2133, 4211, 2655, 5210, 4313, 4460, 5138, 4086, 392, 1959, 1405, -594]),
-          taxes: pdf([-10502, -631, -1254, -788, -1554, -1285, -1329, -1532, -1217, -109, -579, -412, 187]),
-          workingCapital: pdf([-13529, 14710, -10823, 17868, -6362, 3912, 4901, -6152, -149, 4267, -10763, -7371, -17566]),
-          capex: zero(),
-          fcf: pdf([11337, 16211, -7866, 19736, -2707, 6941, 8032, -2546, 2720, 4550, -9382, -6378, -17973]),
-          fcfAccum: pdf([12304, 12304, -3907, 3958, -15777, -13071, -20011, -28043, -25496, -28217, -32767, -23385, -17006])
-        }
-      }
     };
     const driverConfig = [
       { key: "inflationPct", label: "Inflacion", unit: "%", min: 0, max: 10, step: 0.1, group: "Supuestos macro" },
@@ -1139,6 +1232,8 @@
       { key: "retailShare", label: "Retail", unit: "%", min: 0, max: 100, step: 1, group: "Ventas y canales" },
       { key: "wholesaleShare", label: "Mayoreo", unit: "%", min: 0, max: 100, step: 1, group: "Ventas y canales" },
       { key: "catalogShare", label: "Catalogo", unit: "%", min: 0, max: 100, step: 1, group: "Ventas y canales" },
+      { key: "npPct", label: "Nuevos productos", unit: "pp", min: 0, max: 15, step: 0.5, group: "Ventas y canales", years: ["2027", "2028", "2029"] },
+      { key: "ncPct", label: "Nuevos clientes", unit: "pp", min: 0, max: 15, step: 0.5, group: "Ventas y canales", years: ["2027", "2028", "2029"] },
       { key: "cogsPct", label: "COGS", unit: "%", min: 38, max: 55, step: 0.1, group: "Egresos" },
       { key: "payrollAnnual", label: "Nomina", unit: "M", min: 14, max: 34, step: 0.1, group: "Egresos" },
       { key: "freightPct", label: "Fletes", unit: "%", min: 3, max: 10, step: 0.1, group: "Egresos" },
@@ -1150,6 +1245,7 @@
       { key: "dpo", label: "DPO", unit: "dias", min: 45, max: 120, step: 1, group: "Flujo" },
       { key: "taxRate", label: "Impuestos", unit: "%", min: 0, max: 40, step: 0.5, group: "Flujo" },
       { key: "capexAnnual", label: "CAPEX", unit: "M", min: 0, max: 20, step: 0.1, group: "Flujo" },
+      { key: "inversionesAnnual", label: "Inversiones div.", unit: "M", min: 0, max: 20, step: 0.1, group: "Flujo" },
       { key: "openingCash", label: "Caja inicial", unit: "M", min: -30, max: 80, step: 0.1, group: "Flujo" }
     ];
     const erRows = [
@@ -1159,6 +1255,8 @@
       { key: "retailSpecial", label: "Especiales retail", cls: "channel-sub", pctOfSales: true, optional: true, note: "23% retail" },
       { key: "wholesaleSales", label: "Mayoreo", cls: "channel", pctOfSales: true, optional: true, note: "15% mix" },
       { key: "catalogSales", label: "Catalogo", cls: "channel", pctOfSales: true, optional: true, note: "5% mix" },
+      { key: "newProducts", label: "Nuevos productos", cls: "soft", pctOfSales: true, optional: true, note: "aporte al crecimiento" },
+      { key: "newClients", label: "Nuevos clientes", cls: "soft", pctOfSales: true, optional: true, note: "aporte al crecimiento" },
       { key: "specialSales", label: "Ventas especiales", cls: "soft", pctOfSales: true, optional: true, note: "$10M / 5 bajos" },
       { key: "cogs", label: "Costo de ventas", pctOfSales: true },
       { key: "gross", label: "Margen bruto", cls: "major", pctOfSales: true },
@@ -1170,7 +1268,9 @@
       { key: "totalOpex", label: "Total gastos OP", cls: "major", pctOfSales: true },
       { key: "ebitdaOp", label: "EBITDA operativo", cls: "major", pctOfSales: true },
       { key: "financial", label: "Gastos financieros", pctOfSales: true },
-      { key: "ebitdaFinal", label: "EBITDA final", cls: "final", pctOfSales: true }
+      { key: "ebitdaFinal", label: "EBITDA final", cls: "final", pctOfSales: true },
+      { key: "inversiones", label: "Inversiones diversas", pctOfSales: true, note: "equipo, mobiliario, instalaciones" },
+      { key: "ebitdaPostInv", label: "EBITDA post-inversiones", cls: "final", pctOfSales: true }
     ];
     const cashRows = [
       { key: "dso", label: "DSO - dias de cobro", days: true },
@@ -1184,6 +1284,7 @@
       { key: "taxes", label: "Impuestos operativos" },
       { key: "workingCapital", label: "Capital de trabajo" },
       { key: "capex", label: "CAPEX" },
+      { key: "inversiones", label: "Inversiones diversas" },
       { key: "fcf", label: "FCF del año", cls: "final" },
       { key: "fcfAccum", label: "FCF acumulado", cls: "final" }
     ];
@@ -1257,6 +1358,7 @@
         dpo: Math.round(avg(scenario.flow.dpo)),
         taxRate: ebitdaPositive.length ? round1(absSum(scenario.flow.taxes) / sum(ebitdaPositive) * 100) : 30,
         capexAnnual: round1(absSum(scenario.flow.capex || zero()) / 1000),
+        inversionesAnnual: round1(absSum(scenario.flow.inversiones || zero()) / 1000),
         openingCash: round1((accFirst - fcfFirst) / 1000)
       });
     }
@@ -1268,6 +1370,9 @@
         inflationPct: DEFAULT_INFLATION_PCT,
         gdpGrowthPct: DEFAULT_GDP_GROWTH_2027,
         specialSalesOn: false,
+        npPct: 0,
+        ncPct: 0,
+        inversionesAnnual: 0,
         retailShare: DEFAULT_RETAIL_SHARE,
         wholesaleShare: DEFAULT_WHOLESALE_SHARE,
         catalogShare: DEFAULT_CATALOG_SHARE,
@@ -1281,7 +1386,28 @@
       const base = baseScenarioById(state.activeId);
       const edit = state.scenarioEdits[state.activeId];
       const scenario = edit ? computeCustom(edit, base) : enrichScenario(clone(base));
-      return apply2026CarryToScenario(scenario);
+      return applyChainOpening(apply2026CarryToScenario(scenario));
+    }
+    function currentClosingFor(id) {
+      const base = baseScenarioById(id);
+      const edit = state.scenarioEdits[id];
+      let scn = edit ? computeCustom(edit, base) : enrichScenario(clone(base));
+      scn = applyChainOpening(apply2026CarryToScenario(scn));
+      return scn.flow.fcfAccum[11] || 0;
+    }
+    function applyChainOpening(scenario) {
+      if (scenario.year !== "2028" && scenario.year !== "2029") return scenario;
+      const prevId = scenario.year === "2028" ? "esc1" : "esc2028";
+      const prevLabel = scenario.year === "2028" ? "Ppto 2027" : "Proyeccion 2028";
+      const opening = currentClosingFor(prevId);
+      const adjusted = clone(scenario);
+      adjusted.flow.fcfAccum = buildFcfAccum(adjusted.flow.fcf, opening, null, 0);
+      adjusted.chainOpening = opening;
+      adjusted.chainPrevLabel = prevLabel;
+      const d = adjusted.drivers || {};
+      const mixNote = (d.npPct || d.ncPct) ? ` Aporte al crecimiento: ${d.npPct || 0}pp nuevos productos, ${d.ncPct || 0}pp nuevos clientes.` : "";
+      adjusted.verdict = `${buildVerdict(adjusted.label, adjusted.er.sales, adjusted.er.ebitdaFinal, adjusted.flow.fcf)}${mixNote} Caja inicial ${adjusted.year}: ${formatM(opening)} heredada de ${prevLabel}; caja final: ${formatM(adjusted.flow.fcfAccum[11])}.`;
+      return adjusted;
     }
     function activeDrivers() {
       const base = baseScenarioById(state.activeId);
@@ -1318,8 +1444,10 @@
     }
     function withAutoOpeningCash(drivers, baseScenario) {
       const copy = withDriverDefaults(clone(drivers));
-      if (baseScenario?.year === "2027" && lockedActualMonthCount(copy) === 0) {
-        copy.openingCash = round1(closing2026Value() / 1000);
+      if (lockedActualMonthCount(copy) === 0) {
+        if (baseScenario?.year === "2027") copy.openingCash = round1(closing2026Value() / 1000);
+        else if (baseScenario?.year === "2028") copy.openingCash = round1(currentClosingFor("esc1") / 1000);
+        else if (baseScenario?.year === "2029") copy.openingCash = round1(currentClosingFor("esc2028") / 1000);
       }
       return copy;
     }
@@ -1330,7 +1458,7 @@
       const wcCarry = workingCapitalCarry2026Value();
       const wcCarrySchedule = spreadCarryTo2027(wcCarry, adjusted);
       adjusted.flow.workingCapital = add(adjusted.flow.workingCapital, wcCarrySchedule);
-      adjusted.flow.fcf = add(adjusted.flow.ebitdaBase, adjusted.flow.taxes, adjusted.flow.workingCapital, adjusted.flow.capex);
+      adjusted.flow.fcf = add(adjusted.flow.ebitdaBase, adjusted.flow.taxes, adjusted.flow.workingCapital, adjusted.flow.capex, adjusted.flow.inversiones || zero());
       adjusted.flow.fcfAccum = buildFcfAccum(adjusted.flow.fcf, opening, null, 0);
       adjusted.carry2026 = {
         opening,
@@ -1373,17 +1501,26 @@
     function lockedActualMonthCount(scenarioOrDrivers) {
       if (!scenarioOrDrivers) return 0;
       if (typeof scenarioOrDrivers.lockedActualMonths === "number") return scenarioOrDrivers.lockedActualMonths;
-      if (scenarioOrDrivers.seasonalityId === "cierre2026") return 5;
+      if (scenarioOrDrivers.seasonalityId === "cierre2026") return 6;
       return 0;
     }
     function enrichScenario(scenario) {
       const drivers = withDriverDefaults(scenario.drivers || driversFromScenario(scenario));
       const specialSales = scenario.er.specialSales || zero();
+      const inversiones = scenario.er.inversiones || scenario.flow.inversiones || zero();
       return {
         ...scenario,
         er: {
           ...scenario.er,
-          ...buildSalesChannels(scenario.er.sales, specialSales, drivers)
+          ...buildSalesChannels(scenario.er.sales, specialSales, drivers),
+          newProducts: scenario.er.newProducts || zero(),
+          newClients: scenario.er.newClients || zero(),
+          inversiones,
+          ebitdaPostInv: add(scenario.er.ebitdaFinal, inversiones)
+        },
+        flow: {
+          ...scenario.flow,
+          inversiones: scenario.flow.inversiones || inversiones
         }
       };
     }
@@ -1431,6 +1568,11 @@
         specialSales: specialSales || zero()
       };
     }
+    function prevYearEndingNwc(baseScenario) {
+      if (baseScenario?.year === "2028") return endingNwcForScenario(presets.esc1);
+      if (baseScenario?.year === "2029" && presets.esc2028) return endingNwcForScenario(presets.esc2028);
+      return null;
+    }
     function computeCustom(drivers, baseScenario = presets.esc1) {
       drivers = withDriverDefaults(drivers);
       const seasonality = presets[drivers.seasonalityId] || presets.esc1;
@@ -1458,12 +1600,17 @@
       const ebitdaBase = applyLockedPrefix(ebitdaFinal.slice(), actual2026.flow.ebitdaBase, lockedCount);
       const taxes = applyLockedPrefix(ebitdaFinal.map(v => v > 0 ? -v * drivers.taxRate / 100 : 0), actual2026.flow.taxes, lockedCount);
       const capex = applyLockedPrefix(Array(12).fill(-(drivers.capexAnnual * 1000 * inflationFactor) / 12), actual2026.flow.capex, lockedCount);
-      const workingCapital = applyLockedPrefix(computeWorkingCapital(sales, cogs, dso, dio, dpo), actual2026.flow.workingCapital, lockedCount);
-      const fcf = applyLockedPrefix(add(ebitdaBase, taxes, workingCapital, capex), actual2026.flow.fcf, lockedCount);
+      const inversiones = applyLockedPrefix(Array(12).fill(-(drivers.inversionesAnnual * 1000 * inflationFactor) / 12), actual2026.flow.inversiones || zero(), lockedCount);
+      const ebitdaPostInv = add(ebitdaFinal, inversiones);
+      const priorSales = baseScenario?.year === "2027" ? presets.cierre2026.er.sales : (baseScenario?.year === "2028" ? presets.esc1.er.sales : (baseScenario?.year === "2029" && presets.esc2028 ? presets.esc2028.er.sales : null));
+      const newProducts = priorSales ? priorSales.map(v => v * (drivers.npPct || 0) / 100) : zero();
+      const newClients = priorSales ? priorSales.map(v => v * (drivers.ncPct || 0) / 100) : zero();
+      const workingCapital = applyLockedPrefix(computeWorkingCapital(sales, cogs, dso, dio, dpo, prevYearEndingNwc(baseScenario)), actual2026.flow.workingCapital, lockedCount);
+      const fcf = applyLockedPrefix(add(ebitdaBase, taxes, workingCapital, capex, inversiones), actual2026.flow.fcf, lockedCount);
       const openingCash000 = baseScenario?.year === "2027" && !lockedCount ? closing2026Value() : drivers.openingCash * 1000;
       const fcfAccum = buildFcfAccum(fcf, openingCash000, actual2026.flow.fcfAccum, lockedCount);
-      const simYear = lockedCount ? "2026" : "2027";
-      const lockNote = lockedCount ? " Ene-May 2026 reales bloqueados; los drivers afectan Jun-Dic." : "";
+      const simYear = lockedCount ? "2026" : (baseScenario?.year || "2027");
+      const lockNote = lockedCount ? " Ene-Jun 2026 reales bloqueados; los drivers afectan Jul-Dic." : "";
       const carryNote = baseScenario?.year === "2027" && !lockedCount ? ` Caja inicial 2027 tomada del saldo final 2026 (${formatM(openingCash000)}).` : "";
       const label = baseScenario?.label || `Simulador ${simYear}`;
       return {
@@ -1476,8 +1623,8 @@
         verdict: buildVerdict(label, sales, ebitdaFinal, fcf) + lockNote + carryNote,
         isSimulated: true,
         drivers: clone(drivers),
-        er: { sales, ...buildSalesChannels(sales, specialSales, drivers), cogs, gross, payroll, savings, freight, rent, other, totalOpex, ebitdaOp, financial, ebitdaFinal },
-        flow: { dso, dio, dpo, ccc, ebitdaBase, taxes, workingCapital, capex, fcf, fcfAccum }
+        er: { sales, ...buildSalesChannels(sales, specialSales, drivers), newProducts, newClients, cogs, gross, payroll, savings, freight, rent, other, totalOpex, ebitdaOp, financial, ebitdaFinal, inversiones, ebitdaPostInv },
+        flow: { dso, dio, dpo, ccc, ebitdaBase, taxes, workingCapital, capex, inversiones, fcf, fcfAccum }
       };
     }
     function buildFcfAccum(fcf, openingCash, lockedAccum, lockedCount) {
@@ -1495,10 +1642,13 @@
         return running;
       });
     }
-    function computeWorkingCapital(sales, cogs, dso, dio, dpo) {
-      const close = presets.cierre2026;
-      const i = 11;
-      let prev = nwc(close.er.sales[i], Math.abs(close.er.cogs[i]), close.flow.dso[i], close.flow.dio[i], close.flow.dpo[i]);
+    function computeWorkingCapital(sales, cogs, dso, dio, dpo, prevNwc) {
+      let prev = prevNwc;
+      if (prev == null) {
+        const close = presets.cierre2026;
+        const i = 11;
+        prev = nwc(close.er.sales[i], Math.abs(close.er.cogs[i]), close.flow.dso[i], close.flow.dio[i], close.flow.dpo[i]);
+      }
       return sales.map((monthSales, idx) => {
         const current = nwc(monthSales, Math.abs(cogs[idx]), dso[idx], dio[idx], dpo[idx]);
         const impact = -(current - prev);
@@ -1577,6 +1727,7 @@
       renderBridge(scenario, compare);
       renderTable("erTable", erRows, scenario.er, scenario);
       renderTable("cashTable", cashRows, scenario.flow, scenario);
+      renderStrategicNotes();
       if (rebuildControls) renderDrivers(activeDrivers());
       updateDriverReadouts();
     }
@@ -1584,6 +1735,20 @@
       return apply2026CarryToScenario(enrichScenario(clone(presets.esc1)));
     }
     function renderCarryRef(scenario) {
+      if (scenario.year === "2028" || scenario.year === "2029") {
+        const opening = scenario.chainOpening ?? (scenario.flow.fcfAccum[0] - scenario.flow.fcf[0]);
+        const closing = scenario.flow.fcfAccum[11] || 0;
+        const openClass = opening < 0 ? "negative" : "positive";
+        const closeClass = closing < 0 ? "negative" : "positive";
+        document.getElementById("carryRef").innerHTML = `
+          <span>Caja inicial ${scenario.year} heredada de ${scenario.chainPrevLabel || "el año anterior"}</span>
+          <strong class="${openClass}">${formatM(opening)}</strong>
+          <span>Caja final ${scenario.year}</span>
+          <strong class="${closeClass}">${formatM(closing)}</strong>
+          <span>encadenado en vivo: cambios en 2026/2027 se reflejan aqui</span>
+        `;
+        return;
+      }
       const opening = closing2026Value();
       const baseline = baselineClosing2026();
       const delta = opening - baseline;
@@ -1630,7 +1795,7 @@
       const fcf = sum(scenario.flow.fcf);
       const fcfAccum = scenario.flow.fcfAccum[scenario.flow.fcfAccum.length - 1] || 0;
       const margin = sales ? ebitda / sales * 100 : 0;
-      const cashLabel = scenario.year === "2026" ? "Saldo final 2026" : "Caja inicial 2027";
+      const cashLabel = scenario.year === "2026" ? "Saldo final 2026" : `Caja inicial ${scenario.year}`;
       const cashValue = scenario.year === "2026" ? closing2026Value() : (drivers.openingCash || 0) * 1000;
       const curve = presets[drivers.seasonalityId]?.short || scenario.short || scenario.label;
       const channelShares = normalizedChannelShares(drivers);
@@ -1644,13 +1809,13 @@
       ];
       const parameterCards = [
         { label: "Inflacion egresos", value: `${Number(drivers.inflationPct).toFixed(1)}%` },
-        { label: "PIB esperado 2027", value: `${Number(drivers.gdpGrowthPct).toFixed(1)}%` },
+        { label: "PIB esperado", value: `${Number(drivers.gdpGrowthPct).toFixed(1)}%` },
         { label: "Curva", value: curve },
         { label: "Ventas especiales", value: drivers.specialSalesOn && scenario.year === "2027" ? "$10.0M On" : "Off" },
         { label: "Retail / Mayoreo / Catalogo", value: `${(channelShares.retail * 100).toFixed(0)}% / ${(channelShares.wholesale * 100).toFixed(0)}% / ${(channelShares.catalog * 100).toFixed(0)}%` },
         { label: "Retail resurtible", value: `${DEFAULT_RETAIL_RESUPPLY_SHARE}% / ${100 - DEFAULT_RETAIL_RESUPPLY_SHARE}% esp.` },
         ...driverConfig
-          .filter(cfg => ["salesAnnual", "cogsPct", "payrollAnnual", "freightPct", "dso", "dio", "dpo", "taxRate", "capexAnnual"].includes(cfg.key))
+          .filter(cfg => ["salesAnnual", "npPct", "ncPct", "cogsPct", "payrollAnnual", "freightPct", "dso", "dio", "dpo", "taxRate", "capexAnnual", "inversionesAnnual"].includes(cfg.key))
           .map(cfg => ({ label: cfg.label, value: formatDriverValue(cfg, drivers[cfg.key]) }))
       ];
       document.getElementById("printSummary").innerHTML = [...metricCards, ...parameterCards].map(card => `
@@ -1663,13 +1828,14 @@
       if (cfg.unit === "M") return `$${Number(value || 0).toFixed(1)}M`;
       if (cfg.unit === "%") return `${Number(value || 0).toFixed(1)}%`;
       if (cfg.unit === "dias") return `${Math.round(Number(value || 0))}d`;
+      if (cfg.unit === "pp") return `${Number(value || 0).toFixed(1)} pp`;
       return String(value ?? "");
     }
     function renderDrivers(drivers) {
       state.customDrivers = withDriverDefaults(clone(drivers));
       drivers = state.customDrivers;
       const base = baseScenarioById(state.activeId);
-      const autoOpening = base.year === "2027" && lockedActualMonthCount(drivers) === 0;
+      const autoOpening = ["2027", "2028", "2029"].includes(base.year) && lockedActualMonthCount(drivers) === 0;
       const seasonalityOptions = Object.values(presets)
         .map(s => `<option value="${s.id}" ${drivers.seasonalityId === s.id ? "selected" : ""}>${s.short || s.label}</option>`)
         .join("");
@@ -1683,7 +1849,7 @@
       const controls = driverConfig.map(cfg => {
         const groupMarkup = cfg.group !== lastGroup ? `<div class="driver-group">${cfg.group}</div>` : "";
         lastGroup = cfg.group;
-        const disabled = (cfg.key === "openingCash" && autoOpening) || (cfg.yearOnly && cfg.yearOnly !== base.year);
+        const disabled = (cfg.key === "openingCash" && autoOpening) || (cfg.yearOnly && cfg.yearOnly !== base.year) || (cfg.years && !cfg.years.includes(base.year));
         const label = disabled ? `${cfg.label} auto` : cfg.label;
         const disabledAttr = disabled ? "disabled" : "";
         if (cfg.type === "toggle") {
@@ -1750,7 +1916,7 @@
       const yAccum = value => zeroY - (value / accumAbsMax) * (plotH / 2);
       let markup = `
         ${lockedCount ? `<rect x="${pad.left}" y="${pad.top}" width="${(step * lockedCount).toFixed(1)}" height="${(height - pad.top - pad.bottom).toFixed(1)}" fill="#eaf3ea" opacity="0.7"/>
-        <text x="${(pad.left + step * lockedCount / 2).toFixed(1)}" y="${pad.top + 14}" text-anchor="middle" fill="#2d755a" font-size="11" font-weight="800">Real Ene-May</text>` : ""}
+        <text x="${(pad.left + step * lockedCount / 2).toFixed(1)}" y="${pad.top + 14}" text-anchor="middle" fill="#2d755a" font-size="11" font-weight="800">Real Ene-${months[lockedCount - 1]}</text>` : ""}
         <line x1="${pad.left}" y1="${zeroY}" x2="${width - pad.right}" y2="${zeroY}" stroke="#1a2531" stroke-width="1"/>
         <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${height - pad.bottom}" stroke="#d6dde3" stroke-width="1"/>
         <line x1="${width - pad.right}" y1="${pad.top}" x2="${width - pad.right}" y2="${height - pad.bottom}" stroke="#d6dde3" stroke-width="1"/>
@@ -1892,6 +2058,7 @@
         ["Costo ventas", sum(scenario.er.cogs) - sum(compare.er.cogs)],
         ["Gastos OP", sum(scenario.er.totalOpex) - sum(compare.er.totalOpex)],
         ["EBITDA final", sum(scenario.er.ebitdaFinal) - sum(compare.er.ebitdaFinal)],
+        ["Inversiones div.", sum(scenario.er.inversiones || zero()) - sum(compare.er.inversiones || zero())],
         ["Impuestos", sum(scenario.flow.taxes) - sum(compare.flow.taxes)],
         ["Capital trab.", sum(scenario.flow.workingCapital) - sum(compare.flow.workingCapital)],
         ["FCF", sum(scenario.flow.fcf) - sum(compare.flow.fcf)]
@@ -1979,6 +2146,268 @@
       state.customDrivers = activeDrivers();
       renderAll(true);
     }
+    // ---- Notas estrategicas: moldes, ticket, disciplina de caja y metas ----
+    const STRAT = {
+      moldes2025: { n: 8, inversion: 2.1, ventas: 14.0, ventasTotales: 145.5 },
+      moldes2026Mayo: { ventas: 5.5, ventasTotales: 64.0 },
+      ticket2025: 15.2,
+      ticket2026: 15.3,
+      drains: [
+        { c: "IVA atrapado (saldos por acreditar / devolver)", m: 3.6, tipo: "Fiscal", plan: "Acelerar devoluciones y compensacion mensual de IVA; meta interna: recuperar en <= 90 dias." },
+        { c: "Pagos a creditos que no liberan IVA", m: 1.8, tipo: "Financiera", plan: "Reestructurar y consolidar creditos; calendarizar servicio de deuda contra flujo libre (reserva 60 dias del plan)." },
+        { c: "Factoraje (aforo y costo financiero)", m: 2.0, tipo: "Financiera", plan: "Renegociar tasa y aforo; usarlo solo como puente y sustituir con cobranza CXC al dia (CCC <= 45 dias, meta BSC)." },
+        { c: "Efectivo disperso / caja ociosa", m: 2.4, tipo: "Tesoreria", plan: "Cash pooling: concentracion diaria de saldos y politica de caja minima por unidad." },
+        { c: "Dividendos (no acreditan IVA)", m: 0.8, tipo: "Accionistas", plan: "Politica de dividendos: pagar solo con flujo libre y con la reserva de 60 dias cubierta (gobierno del plan)." },
+        { c: "Bajas de inventario / activos", m: 1.0, tipo: "Operativa", plan: "Politica de obsoletos < 3% del plan; disposicion semestral (descuento, reciclaje de resina, liquidacion)." },
+        { c: "Penalizaciones de clientes", m: null, tipo: "Comercial", plan: "Meta del plan: CERO penalizaciones via Fill Rate >= 98% y OTIF >= 97%. Cuantificar mensualmente en el tablero." }
+      ]
+    };
+    STRAT.costoPorMolde = STRAT.moldes2025.inversion / STRAT.moldes2025.n;
+    STRAT.ventaPorPeso = STRAT.moldes2025.ventas / STRAT.moldes2025.inversion;
+    STRAT.contrib2025 = STRAT.moldes2025.ventas / STRAT.moldes2025.ventasTotales * 100;
+    STRAT.contrib2026 = STRAT.moldes2026Mayo.ventas / STRAT.moldes2026Mayo.ventasTotales * 100;
+    function currentScenarioFor(id) {
+      const base = baseScenarioById(id);
+      const edit = state.scenarioEdits[id];
+      const scn = edit ? computeCustom(edit, base) : enrichScenario(clone(base));
+      return applyChainOpening(apply2026CarryToScenario(scn));
+    }
+    function stratPrevIdOf(id) {
+      return id === "esc1" ? "cierre2026" : id === "esc2028" ? "esc1" : "esc2028";
+    }
+    function fmtMM(v) { return "$" + v.toFixed(1) + "M"; }
+    function kpiCard(label, value, sub, color) {
+      return `<article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value" style="font-size:19px;${color ? "color:" + color + ";" : ""}">${value}</div><div class="delta">${sub || ""}</div></article>`;
+    }
+    function renderMoldes() {
+      const inv = Number(document.getElementById("moldeInv").value);
+      const netPct = Number(document.getElementById("moldeNet").value) || 4.5;
+      const targetId = document.getElementById("moldeYear").value;
+      const target = currentScenarioFor(targetId);
+      const prev = currentScenarioFor(stratPrevIdOf(targetId));
+      const prevSalesM = sum(prev.er.sales) / 1000;
+      const targetSalesM = sum(target.er.sales) / 1000;
+      const cogsPct = absSum(target.er.cogs) / sum(target.er.sales);
+      const dso = avg(target.flow.dso), dio = avg(target.flow.dio), dpo = avg(target.flow.dpo);
+      const nMoldes = inv / STRAT.costoPorMolde;
+      const ventasNuevas = inv * STRAT.ventaPorPeso;
+      const pp = prevSalesM ? ventasNuevas / prevSalesM * 100 : 0;
+      const wcPorPeso = dso / 360 + cogsPct * (dio - dpo) / 360;
+      const wc = ventasNuevas * wcPorPeso;
+      const capitalTotal = inv + wc;
+      const utilidadNeta = ventasNuevas * netPct / 100;
+      const paybackCapexMeses = utilidadNeta > 0 ? inv / utilidadNeta * 12 : 0;
+      const roic = capitalTotal > 0 ? utilidadNeta / capitalTotal * 100 : 0;
+      const netReq20 = ventasNuevas > 0 ? capitalTotal * 0.20 / ventasNuevas * 100 : 0;
+      const cumple = roic >= 20 && paybackCapexMeses <= 36;
+      const pill = cumple ? "ok" : roic >= 14 ? "warn" : "risk";
+      const pillTxt = cumple ? "pasa comite CAPEX (ROIC ≥ 20%, payback ≤ 3a)" : roic >= 14 ? "limite: no alcanza ROIC ≥ 20% del BSC" : "no pasa comite CAPEX con este margen";
+      document.getElementById("moldeKpis").innerHTML =
+        kpiCard("Venta por $1M invertido", fmtMM(STRAT.ventaPorPeso), "evidencia 2025: $14.0M / $2.1M") +
+        kpiCard("Margen neto real de moldes", "3-6%", "2025 reporta 14.4% pero faltan descuentos comerciales; 2026: 3.0%", "var(--red)") +
+        kpiCard("Capital de trabajo requerido", "$" + wcPorPeso.toFixed(2) + "M", "por cada $1M de venta nueva (DSO " + Math.round(dso) + " / DIO " + Math.round(dio) + " / DPO " + Math.round(dpo) + " del ano destino)") +
+        kpiCard("Costo por molde", fmtMM(STRAT.costoPorMolde), "8 moldes = $2.1M (2025)") +
+        kpiCard("ROIC del proyecto", roic.toFixed(1) + "%", "al " + netPct.toFixed(1) + "% neto, sobre CAPEX + cap. de trabajo · BSC exige > 20%", roic >= 20 ? "var(--positive)" : "var(--red)");
+      document.getElementById("moldeInvValue").textContent = fmtMM(inv) + " = " + nMoldes.toFixed(1) + " moldes";
+      document.getElementById("moldeNetValue").textContent = netPct.toFixed(1) + "% · utilidad " + fmtMM(utilidadNeta) + "/ano";
+      document.getElementById("moldeYearValue").textContent = "ventas destino " + fmtMM(targetSalesM);
+      document.getElementById("moldeResult").innerHTML = `+${fmtMM(ventasNuevas)} de venta = <strong>+${pp.toFixed(1)} pp</strong> · capital total <strong>${fmtMM(capitalTotal)}</strong> (CAPEX ${fmtMM(inv)} + cap. trabajo ${fmtMM(wc)}) · utilidad neta ${fmtMM(utilidadNeta)}/ano · payback CAPEX ${(paybackCapexMeses / 12).toFixed(1)} anos · ROIC ${roic.toFixed(1)}% <span class="pill ${pill}">${pillTxt}</span>`;
+      document.getElementById("moldeDiag").innerHTML = `<strong>Lectura honesta para el accionista:</strong> los moldes si venden - cada <strong>$1.0M</strong> invertido genera <strong>${fmtMM(STRAT.ventaPorPeso)}</strong> de venta nueva (evidencia 2025) - pero con margen neto real de <strong>3-6%</strong> la utilidad es delgada: al ${netPct.toFixed(1)}% deja ${fmtMM(utilidadNeta)}/ano, el CAPEX se recupera en <strong>${(paybackCapexMeses / 12).toFixed(1)} anos</strong> y, sumando el capital de trabajo que hay que financiar desde el dia uno (${fmtMM(wc)} en inventario y cartera), el ROIC queda en <strong>${roic.toFixed(1)}%</strong> vs el <strong>> 20%</strong> que exige el BSC. Para que el proyecto pase el comite se necesita margen neto ≥ <strong>${netReq20.toFixed(1)}%</strong>, y hay tres caminos del propio plan: (a) <strong>recuperar los descuentos comerciales</strong> que hoy comprimen el margen, (b) <strong>co-inversion de moldes con clientes ancla</strong> (≥ 2 proyectos/ano) que reduce el CAPEX y el riesgo, y (c) priorizar moldes para <strong>SKUs Ekuora con margen ≥ 40%</strong>. La contribucion de moldes bajo de ${STRAT.contrib2025.toFixed(1)}% (2025) a ${STRAT.contrib2026.toFixed(1)}% (2026 a mayo): la palanca pierde fuerza sin inversion, pero invertir sin arreglar el margen solo compra venta, no utilidad. Al aplicar al modelo, el flujo descuenta automaticamente el capital de trabajo via DSO/DIO/DPO.`;
+    }
+    function applyMoldesToModel() {
+      const inv = Number(document.getElementById("moldeInv").value);
+      const targetId = document.getElementById("moldeYear").value;
+      const base = baseScenarioById(targetId);
+      const prev = currentScenarioFor(stratPrevIdOf(targetId));
+      const prevSalesM = sum(prev.er.sales) / 1000;
+      const ventasNuevas = inv * STRAT.ventaPorPeso;
+      const pp = prevSalesM ? ventasNuevas / prevSalesM * 100 : 0;
+      const drivers = state.scenarioEdits[targetId]
+        ? withDriverDefaults(clone(state.scenarioEdits[targetId]))
+        : withAutoOpeningCash(driversFromScenario(currentScenarioFor(targetId)), base);
+      drivers.salesAnnual = round1(drivers.salesAnnual + ventasNuevas);
+      drivers.npPct = Math.min(15, Math.round((Number(drivers.npPct || 0) + pp) * 2) / 2);
+      state.scenarioEdits[targetId] = withAutoOpeningCash(drivers, base);
+      state.activeId = targetId;
+      renderAll(true);
+    }
+    function renderTicket() {
+      const c26 = currentScenarioFor("cierre2026");
+      const ventas26M = sum(c26.er.sales) / 1000;
+      const piezas25 = STRAT.moldes2025.ventasTotales / STRAT.ticket2025;
+      const piezas26 = ventas26M / STRAT.ticket2026;
+      const delta = Number(document.getElementById("ticketDelta").value);
+      const extraM = piezas26 * delta;
+      const pp = extraM / ventas26M * 100;
+      document.getElementById("ticketKpis").innerHTML =
+        kpiCard("Ticket 2025", "$" + STRAT.ticket2025.toFixed(1), piezas25.toFixed(1) + "M piezas implicitas ($145.5M)") +
+        kpiCard("Ticket 2026", "$" + STRAT.ticket2026.toFixed(1), piezas26.toFixed(1) + "M piezas (ventas modelo " + fmtMM(ventas26M) + ")") +
+        kpiCard("Variacion del ticket", "+" + (STRAT.ticket2026 - STRAT.ticket2025).toFixed(1) + " (+0.7%)", "practicamente plano: la palanca esta intacta") +
+        kpiCard("Valor de +$1 al ticket", "+" + fmtMM(piezas26), "+" + (piezas26 / ventas26M * 100).toFixed(1) + " pp de crecimiento") +
+        kpiCard("Ancla del plan", "Precios estables", "resinas +25% post-conflicto: revisar precios con clientes clave");
+      document.getElementById("ticketDeltaValue").textContent = "+$" + delta.toFixed(1) + " al ticket";
+      document.getElementById("ticketResult").innerHTML = `+$${delta.toFixed(1)} de ticket con el volumen actual (${piezas26.toFixed(1)}M piezas) = <strong>+${fmtMM(extraM)}</strong> de venta = <strong>+${pp.toFixed(1)} pp</strong> de crecimiento, sin invertir un peso en activos. Mismo efecto que invertir ${fmtMM(extraM / STRAT.ventaPorPeso)} en moldes.`;
+    }
+    function renderCashDrains() {
+      const c26 = currentScenarioFor("cierre2026");
+      const egresosMes = (absSum(c26.er.cogs) + absSum(c26.er.totalOpex)) / 12 / 1000;
+      const total = STRAT.drains.reduce((a, d) => a + (d.m || 0), 0);
+      const dias = total / egresosMes * 30;
+      const reserva60 = egresosMes * 2;
+      const header = "<thead><tr><th>Partida que distrae el flujo</th><th>$M</th><th>Naturaleza</th><th>Estrategia (anclada al plan 2027-2029)</th></tr></thead>";
+      const rows = STRAT.drains.map(d => `<tr><td>${d.c}</td><td class="num">${d.m === null ? "por cuantificar" : "$" + d.m.toFixed(1)}</td><td>${d.tipo}</td><td>${d.plan}</td></tr>`).join("");
+      const memo = `<tr class="soft"><td>CAPEX moldes (inversion, no fuga - se gestiona fuera de la caja operativa)</td><td class="num">$${STRAT.moldes2025.inversion.toFixed(1)}</td><td>Inversion</td><td>Comite CAPEX del plan (TIR >= 25%, payback <= 3 anos) y co-inversion con clientes ancla para compartir el desembolso.</td></tr>`;
+      const totalRow = `<tr class="final"><td>Total identificado que distrae el flujo</td><td class="num">$${total.toFixed(1)}</td><td colspan="2">equivale a ${Math.round(dias)} dias de operacion (egresos ~${fmtMM(egresosMes)}/mes)</td></tr>`;
+      document.getElementById("cashDrainTable").innerHTML = header + "<tbody>" + rows + memo + totalRow + "</tbody>";
+    }
+    function renderGoals() {
+      const IND = { growth: 5.9, ebLo: 10, ebHi: 18 };
+      const c26 = currentScenarioFor("cierre2026");
+      const e27 = currentScenarioFor("esc1");
+      const e29 = currentScenarioFor("esc2029");
+      const ventas26M = sum(c26.er.sales) / 1000;
+      const growth26 = (ventas26M / STRAT.moldes2025.ventasTotales - 1) * 100;
+      const ebitda26 = sum(c26.er.ebitdaFinal) / sum(c26.er.sales) * 100;
+      const salesH1 = sum(c26.er.sales.slice(0, 6)), ebH1 = sum(c26.er.ebitdaFinal.slice(0, 6));
+      const ebitdaYTD = ebH1 / salesH1 * 100;
+      const ebitdaH2Req = (sum(c26.er.ebitdaFinal) - ebH1) / (sum(c26.er.sales) - salesH1) * 100;
+      const g27 = (sum(e27.er.sales) / sum(c26.er.sales) - 1) * 100;
+      const m27 = sum(e27.er.ebitdaFinal) / sum(e27.er.sales) * 100;
+      const m29 = sum(e29.er.ebitdaFinal) / sum(e29.er.sales) * 100;
+      const g = Number(document.getElementById("goalGrowth").value);
+      const e = Number(document.getElementById("goalEbitda").value);
+      const ventasMeta = ventas26M * (1 + g / 100);
+      const ebitdaMeta = ventasMeta * e / 100;
+      const brechaVentas = ventasMeta - sum(e27.er.sales) / 1000;
+      const invMoldes = Math.max(0, brechaVentas) / STRAT.ventaPorPeso;
+      const piezas26 = ventas26M / STRAT.ticket2026;
+      const ticketEq = Math.max(0, brechaVentas) / piezas26;
+      let gTxt, gPill;
+      if (g <= IND.growth + 0.6) { gTxt = "en linea con el mercado de plasticos para el hogar (~" + IND.growth.toFixed(1) + "% anual)"; gPill = "ok"; }
+      else if (g <= 15) { gTxt = "2-2.5x el mercado: alcanzable solo con palancas (moldes, ticket, nuevos clientes)"; gPill = "ok"; }
+      else if (g <= growth26) { gTxt = "en el limite de lo demostrado 2026 (+" + growth26.toFixed(1) + "%), 3x el mercado: exige inversion fuerte"; gPill = "warn"; }
+      else { gTxt = "sin referente: ni lo demostrado (+" + growth26.toFixed(1) + "%) ni el mercado (~6%) lo respaldan"; gPill = "risk"; }
+      let eTxt, ePill;
+      if (e <= ebitdaYTD) { eTxt = "en linea con lo real Ene-Jun 2026 (" + ebitdaYTD.toFixed(1) + "%) y dentro de la industria (10-18%)"; ePill = "ok"; }
+      else if (e <= IND.ebHi) { eTxt = "techo de la industria de plasticos (10-18%): exige eficiencia superior sostenida"; ePill = "ok"; }
+      else if (e <= ebitda26 + 0.2) { eTxt = "sobre la industria; igual a la proyeccion FY26 (" + ebitda26.toFixed(1) + "%) que ya exige un H2 al " + ebitdaH2Req.toFixed(1) + "% - el doble del H1 real"; ePill = "warn"; }
+      else { eTxt = "sin referente: lo real es " + ebitdaYTD.toFixed(1) + "% y la industria opera en 10-18%; 30% no es presupuestable hoy"; ePill = "risk"; }
+      document.getElementById("goalKpis").innerHTML =
+        kpiCard("Aspiracion BSC (plan)", ">=25% · >30%", "CAGR de ingresos · margen EBITDA: sin referente interno ni de industria hoy") +
+        kpiCard("Industria plasticos hogar", "~6% · 10-18%", "crecimiento del mercado (CAGR 5.9%) · EBITDA tipico de fabricantes") +
+        kpiCard("Real 2026", "+" + growth26.toFixed(1) + "% · " + ebitdaYTD.toFixed(1) + "%", "crec. proyectado FY vs 2025 · EBITDA real Ene-Jun (proyeccion FY " + ebitda26.toFixed(1) + "% exige H2 al " + ebitdaH2Req.toFixed(1) + "%)") +
+        kpiCard("Modelo 2027-2029", "+" + g27.toFixed(1) + "→15% · " + m27.toFixed(1) + "-" + m29.toFixed(1) + "%", "tratarlo como techo con palancas ejecutadas, no como piso") +
+        kpiCard("Tu meta", "+" + g.toFixed(1) + "% · " + e.toFixed(1) + "%", "ventas " + fmtMM(ventasMeta) + " · EBITDA " + fmtMM(ebitdaMeta), "var(--gold)");
+      document.getElementById("goalGrowthValue").textContent = "+" + g.toFixed(1) + "% = ventas de " + fmtMM(ventasMeta);
+      document.getElementById("goalEbitdaValue").textContent = e.toFixed(1) + "% = EBITDA de " + fmtMM(ebitdaMeta);
+      document.getElementById("goalVerdict").innerHTML = `<span class="pill ${gPill}">crecimiento: ${gTxt}</span><br><span class="pill ${ePill}">rentabilidad: ${eTxt}</span>`;
+      document.getElementById("goalDiag").innerHTML = `<strong>Para calibrar con el accionista:</strong> el presupuesto se ha forzado a +25% de crecimiento y 30% de EBITDA, pero ningun referente lo respalda: el mercado de plasticos para el hogar crece ~<strong>6%</strong> anual, la industria opera con EBITDA de <strong>10-18%</strong>, y PORTA real Ene-Jun 2026 esta en <strong>${ebitdaYTD.toFixed(1)}%</strong> (dentro de industria) con la proyeccion de ${ebitda26.toFixed(1)}% FY condicionada a un segundo semestre al ${ebitdaH2Req.toFixed(1)}%. El rango realista y financiable: <strong>crecimiento 10-15%</strong> (2-2.5x mercado, sustentado en moldes con margen corregido, +$1-2 al ticket y nuevos clientes) y <strong>EBITDA 15-18%</strong> consolidando hacia <strong>20-23%</strong> conforme se capturen recorte de nomina, reduccion de costo ≥8% y mezcla Ekuora ≥40% de margen. Con tu meta de +${g.toFixed(1)}%, la brecha vs Ppto 2027 es <strong>${fmtMM(Math.max(0, brechaVentas))}</strong>: ~${fmtMM(invMoldes)} en moldes (${(invMoldes / STRAT.costoPorMolde).toFixed(0)} moldes, cuidando su margen neto) o +$${ticketEq.toFixed(1)} al ticket. El 25/30 del BSC queda como aspiracion de largo plazo, no como presupuesto anual.`;
+    }
+    function renderStrategicNotes() {
+      if (!document.getElementById("stratPanel")) return;
+      renderMoldes();
+      renderTicket();
+      renderCashDrains();
+      renderGoals();
+    }
+    function initStrategicNotes() {
+      if (!document.getElementById("stratPanel")) return;
+      document.getElementById("moldeInv").addEventListener("input", renderMoldes);
+      document.getElementById("moldeNet").addEventListener("input", renderMoldes);
+      document.getElementById("moldeYear").addEventListener("input", renderMoldes);
+      document.getElementById("moldeApplyBtn").addEventListener("click", applyMoldesToModel);
+      document.getElementById("ticketDelta").addEventListener("input", renderTicket);
+      document.getElementById("goalGrowth").addEventListener("input", renderGoals);
+      document.getElementById("goalEbitda").addEventListener("input", renderGoals);
+      renderStrategicNotes();
+    }
+    function buildGrowthYear(base, cfg) {
+      const g = 1 + cfg.growthPct / 100;
+      const infl = 1 + cfg.inflationPct / 100;
+      const prevSales = base.er.sales;
+      const prevTotal = sum(prevSales);
+      const sales = prevSales.map(v => v * g);
+      const newProducts = prevSales.map(v => v * cfg.npPct / 100);
+      const newClients = prevSales.map(v => v * cfg.ncPct / 100);
+      const cogsPct = absSum(base.er.cogs) / prevTotal;
+      const cogs = sales.map(v => -v * cogsPct);
+      const gross = add(sales, cogs);
+      const payroll = base.er.payroll.map(v => v * infl);
+      const freightPct = absSum(base.er.freight) / prevTotal;
+      const freight = sales.map(v => -v * freightPct);
+      const rent = base.er.rent.map(v => v * infl);
+      const other = base.er.other.map(v => v * infl);
+      const totalOpex = add(payroll, freight, rent, other);
+      const ebitdaOp = add(gross, totalOpex);
+      const finPct = absSum(base.er.financial) / prevTotal;
+      const financial = sales.map(v => -v * finPct);
+      const ebitdaFinal = add(ebitdaOp, financial);
+      const inversiones = zero();
+      const ebitdaPostInv = ebitdaFinal.slice();
+      const dso = base.flow.dso.slice();
+      const dio = base.flow.dio.slice();
+      const dpo = base.flow.dpo.slice();
+      const ccc = dso.map((v, i) => v + dio[i] - dpo[i]);
+      const taxes = ebitdaFinal.map(v => v > 0 ? -v * cfg.taxRate / 100 : 0);
+      const prevNwc = nwc(prevSales[11], Math.abs(base.er.cogs[11]), base.flow.dso[11], base.flow.dio[11], base.flow.dpo[11]);
+      const workingCapital = computeWorkingCapital(sales, cogs, dso, dio, dpo, prevNwc);
+      const capex = zero();
+      const fcf = add(ebitdaFinal, taxes, workingCapital, capex, inversiones);
+      const fcfAccum = buildFcfAccum(fcf, cfg.openingCash000, null, 0);
+      const drivers = withDriverDefaults({
+        seasonalityId: "esc1",
+        salesAnnual: round1(sum(sales) / 1000),
+        cogsPct: round1(cogsPct * 100),
+        payrollAnnual: round1(absSum(payroll) / 1000),
+        freightPct: round1(freightPct * 100),
+        rentAnnual: round1(absSum(rent) / 1000),
+        otherAnnual: round1(absSum(other) / 1000),
+        financialPct: round1(finPct * 100),
+        dso: Math.round(avg(dso)),
+        dio: Math.round(avg(dio)),
+        dpo: Math.round(avg(dpo)),
+        taxRate: cfg.taxRate,
+        capexAnnual: 0,
+        inversionesAnnual: 0,
+        npPct: cfg.npPct,
+        ncPct: cfg.ncPct,
+        openingCash: round1(cfg.openingCash000 / 1000)
+      });
+      const organicPp = round1(cfg.growthPct - cfg.npPct - cfg.ncPct);
+      const verdict = `${buildVerdict(cfg.label, sales, ebitdaFinal, fcf)} Crecimiento +${cfg.growthPct}% sobre ${cfg.baseLabel}: ${cfg.npPct}pp nuevos productos, ${cfg.ncPct}pp nuevos clientes, ${organicPp}pp organico. Caja inicial ${formatM(cfg.openingCash000)} heredada de ${cfg.baseLabel}.`;
+      return {
+        id: cfg.id,
+        order: cfg.order,
+        year: cfg.year,
+        label: cfg.label,
+        short: cfg.short,
+        subtitle: cfg.subtitle,
+        verdict,
+        drivers,
+        er: { sales, ...buildSalesChannels(sales, zero(), drivers), newProducts, newClients, cogs, gross, payroll, savings: zero(), freight, rent, other, totalOpex, ebitdaOp, financial, ebitdaFinal, inversiones, ebitdaPostInv },
+        flow: { dso, dio, dpo, ccc, ebitdaBase: ebitdaFinal.slice(), taxes, workingCapital, capex, inversiones, fcf, fcfAccum }
+      };
+    }
+    function buildFutureYears() {
+      const esc1Applied = apply2026CarryToScenario(enrichScenario(clone(presets.esc1)));
+      const closing2027 = esc1Applied.flow.fcfAccum[11] || 0;
+      presets.esc2028 = buildGrowthYear(esc1Applied, {
+        id: "esc2028", order: 3, year: "2028",
+        label: "Proyeccion 2028", short: "2028", subtitle: "Ppto 2027 +15% encadenado",
+        baseLabel: "Ppto 2027",
+        growthPct: 15, npPct: 6, ncPct: 4, inflationPct: 3, taxRate: 30,
+        openingCash000: closing2027
+      });
+      const closing2028 = presets.esc2028.flow.fcfAccum[11] || 0;
+      presets.esc2029 = buildGrowthYear(presets.esc2028, {
+        id: "esc2029", order: 4, year: "2029",
+        label: "Proyeccion 2029", short: "2029", subtitle: "2028 +15% encadenado",
+        baseLabel: "Proyeccion 2028",
+        growthPct: 15, npPct: 6, ncPct: 4, inflationPct: 3, taxRate: 30,
+        openingCash000: closing2028
+      });
+    }
+    buildFutureYears();
     document.getElementById("saveBtn").addEventListener("click", savePdf);
     document.getElementById("resetBtn").addEventListener("click", resetScenario);
     window.addEventListener("beforeprint", () => renderPrintSummary(activeScenario()));
@@ -1986,6 +2415,7 @@
     renderTabs();
     initChartInteraction();
     renderDrivers(state.customDrivers);
+    initStrategicNotes();
     renderAll(false);
   </script>
 </body>
