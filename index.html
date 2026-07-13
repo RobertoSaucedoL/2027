@@ -1227,7 +1227,7 @@
     const driverConfig = [
       { key: "inflationPct", label: "Inflacion", unit: "%", min: 0, max: 10, step: 0.1, group: "Supuestos macro" },
       { key: "gdpGrowthPct", label: "PIB 2027", unit: "%", min: -2, max: 6, step: 0.1, group: "Supuestos macro" },
-      { key: "salesAnnual", label: "Ventas base", unit: "M", min: 120, max: 260, step: 0.1, group: "Ventas y canales" },
+      { key: "salesAnnual", label: "Ventas totales", unit: "M", min: 120, max: 320, step: 0.1, group: "Ventas y canales" },
       { key: "specialSalesOn", label: "Ventas especiales", unit: "toggle", type: "toggle", group: "Ventas y canales", yearOnly: "2027" },
       { key: "retailShare", label: "Retail", unit: "%", min: 0, max: 100, step: 1, group: "Ventas y canales" },
       { key: "wholesaleShare", label: "Mayoreo", unit: "%", min: 0, max: 100, step: 1, group: "Ventas y canales" },
@@ -1441,6 +1441,18 @@
     }
     function scenarioUses2026Carry(scenario) {
       return scenario?.year === "2027" && lockedActualMonthCount(scenario) === 0;
+    }
+    function npNcExtraM(drivers, baseScenario) {
+      const year = baseScenario?.year;
+      if (lockedActualMonthCount(drivers)) return 0;
+      const prior = year === "2027" ? presets.cierre2026.er.sales : year === "2028" ? presets.esc1.er.sales : (year === "2029" && presets.esc2028 ? presets.esc2028.er.sales : null);
+      let extra = 0;
+      if (prior) extra += sum(prior) / 1000 * ((Number(drivers.npPct) || 0) + (Number(drivers.ncPct) || 0)) / 100;
+      if (drivers.specialSalesOn && year === "2027") extra += SPECIAL_SALES_AMOUNT_000 / 1000;
+      return extra;
+    }
+    function displayedSalesTotal(drivers, baseScenario) {
+      return round1(Number(drivers.salesAnnual || 0) + npNcExtraM(drivers, baseScenario));
     }
     function withAutoOpeningCash(drivers, baseScenario) {
       const copy = withDriverDefaults(clone(drivers));
@@ -1816,7 +1828,7 @@
         { label: "Retail resurtible", value: `${DEFAULT_RETAIL_RESUPPLY_SHARE}% / ${100 - DEFAULT_RETAIL_RESUPPLY_SHARE}% esp.` },
         ...driverConfig
           .filter(cfg => ["salesAnnual", "npPct", "ncPct", "cogsPct", "payrollAnnual", "freightPct", "dso", "dio", "dpo", "taxRate", "capexAnnual", "inversionesAnnual"].includes(cfg.key))
-          .map(cfg => ({ label: cfg.label, value: formatDriverValue(cfg, drivers[cfg.key]) }))
+          .map(cfg => ({ label: cfg.label, value: formatDriverValue(cfg, cfg.key === "salesAnnual" ? displayedSalesTotal(drivers, baseScenarioById(state.activeId)) : drivers[cfg.key]) }))
       ];
       document.getElementById("printSummary").innerHTML = [...metricCards, ...parameterCards].map(card => `
         <article class="print-card">
@@ -1860,11 +1872,12 @@
             <span class="panel-note">${drivers[cfg.key] && !disabled ? "$10M" : "Off"}</span>
           </div>`;
         }
+        const displayValue = cfg.key === "salesAnnual" ? displayedSalesTotal(drivers, base) : drivers[cfg.key];
         return `${groupMarkup}
           <div class="driver">
             <label for="driver-${cfg.key}">${label}</label>
-            <input id="driver-${cfg.key}" type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${drivers[cfg.key]}" data-driver="${cfg.key}" ${disabledAttr}>
-            <input type="number" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${drivers[cfg.key]}" data-driver="${cfg.key}" aria-label="${label}" ${disabledAttr}>
+            <input id="driver-${cfg.key}" type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${displayValue}" data-driver="${cfg.key}" ${disabledAttr}>
+            <input type="number" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${displayValue}" data-driver="${cfg.key}" aria-label="${label}" ${disabledAttr}>
           </div>`;
       }).join("");
       document.getElementById("drivers").innerHTML = selectMarkup + controls;
@@ -1876,15 +1889,24 @@
     function updateDriver(key, rawValue, source) {
       if (!state.customDrivers) state.customDrivers = activeDrivers();
       state.customDrivers = withDriverDefaults(state.customDrivers);
-      state.customDrivers[key] = key === "seasonalityId" ? rawValue : source?.type === "checkbox" ? source.checked : Number(rawValue);
-      state.customDrivers = withAutoOpeningCash(state.customDrivers, baseScenarioById(state.activeId));
+      const base = baseScenarioById(state.activeId);
+      if (key === "salesAnnual") {
+        state.customDrivers.salesAnnual = round1(Number(rawValue) - npNcExtraM(state.customDrivers, base));
+      } else {
+        state.customDrivers[key] = key === "seasonalityId" ? rawValue : source?.type === "checkbox" ? source.checked : Number(rawValue);
+      }
+      state.customDrivers = withAutoOpeningCash(state.customDrivers, base);
       state.scenarioEdits[state.activeId] = clone(state.customDrivers);
+      const displayTotal = displayedSalesTotal(state.customDrivers, base);
       document.querySelectorAll(`[data-driver="${key}"]`).forEach(input => {
         if (input !== source) {
           if (input.type === "checkbox") input.checked = Boolean(state.customDrivers[key]);
-          else input.value = state.customDrivers[key];
+          else input.value = key === "salesAnnual" ? displayTotal : state.customDrivers[key];
         }
       });
+      if (key === "npPct" || key === "ncPct" || key === "specialSalesOn" || key === "seasonalityId") {
+        document.querySelectorAll('[data-driver="salesAnnual"]').forEach(input => { input.value = displayTotal; });
+      }
       scheduleRender(key === "seasonalityId" || key === "specialSalesOn");
     }
     function updateDriverReadouts() {
