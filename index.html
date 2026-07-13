@@ -1053,7 +1053,7 @@
                     <div class="lever">
                       <label>Llevar al modelo</label>
                       <button class="btn secondary" id="moldeApplyBtn" type="button">Aplicar al ano destino</button>
-                      <span class="lever-value">suma ventas y fija pp de nuevos productos</span>
+                      <span class="lever-value">fija los pp de nuevos productos (suman a ventas)</span>
                     </div>
                   </div>
                   <div class="strat-diag" id="moldeDiag"></div>
@@ -1255,8 +1255,8 @@
       { key: "retailSpecial", label: "Especiales retail", cls: "channel-sub", pctOfSales: true, optional: true, note: "23% retail" },
       { key: "wholesaleSales", label: "Mayoreo", cls: "channel", pctOfSales: true, optional: true, note: "15% mix" },
       { key: "catalogSales", label: "Catalogo", cls: "channel", pctOfSales: true, optional: true, note: "5% mix" },
-      { key: "newProducts", label: "Nuevos productos", cls: "soft", pctOfSales: true, optional: true, note: "aporte al crecimiento" },
-      { key: "newClients", label: "Nuevos clientes", cls: "soft", pctOfSales: true, optional: true, note: "aporte al crecimiento" },
+      { key: "newProducts", label: "Nuevos productos", cls: "soft", pctOfSales: true, optional: true, note: "suma a ventas (pp vs ano previo)" },
+      { key: "newClients", label: "Nuevos clientes", cls: "soft", pctOfSales: true, optional: true, note: "suma a ventas (pp vs ano previo)" },
       { key: "specialSales", label: "Ventas especiales", cls: "soft", pctOfSales: true, optional: true, note: "$10M / 5 bajos" },
       { key: "cogs", label: "Costo de ventas", pctOfSales: true },
       { key: "gross", label: "Margen bruto", cls: "major", pctOfSales: true },
@@ -1346,7 +1346,7 @@
       const accFirst = scenario.flow.fcfAccum?.[0] || fcfFirst;
       return withDriverDefaults({
         seasonalityId: scenario.id in presets ? scenario.id : "esc1",
-        salesAnnual: round1(salesTotal / 1000),
+        salesAnnual: round1((salesTotal - sum(scenario.er.newProducts || zero()) - sum(scenario.er.newClients || zero())) / 1000),
         cogsPct: round1(absSum(scenario.er.cogs) / salesTotal * 100),
         payrollAnnual: round1(absSum(scenario.er.payroll) / 1000),
         freightPct: round1(absSum(scenario.er.freight) / salesTotal * 100),
@@ -1581,7 +1581,10 @@
       const inflationFactor = expenseInflationFactor(drivers);
       const baseSales = distributeAnnualWithLocked(drivers.salesAnnual * 1000, seasonality.er.sales, actual2026.er.sales, lockedCount, false);
       const specialSales = specialSalesSchedule(drivers, seasonality, lockedCount, baseScenario);
-      const sales = add(baseSales, specialSales);
+      const priorSales = baseScenario?.year === "2027" ? presets.cierre2026.er.sales : (baseScenario?.year === "2028" ? presets.esc1.er.sales : (baseScenario?.year === "2029" && presets.esc2028 ? presets.esc2028.er.sales : null));
+      const newProducts = priorSales && !lockedCount ? priorSales.map(v => v * (drivers.npPct || 0) / 100) : zero();
+      const newClients = priorSales && !lockedCount ? priorSales.map(v => v * (drivers.ncPct || 0) / 100) : zero();
+      const sales = add(baseSales, specialSales, newProducts, newClients);
       const cogs = applyLockedPrefix(sales.map(v => -v * drivers.cogsPct / 100 * inflationFactor), actual2026.er.cogs, lockedCount);
       const gross = add(sales, cogs);
       const payroll = distributeAnnualWithLocked(drivers.payrollAnnual * 1000 * inflationFactor, seasonality.er.payroll, actual2026.er.payroll, lockedCount, true);
@@ -1602,9 +1605,6 @@
       const capex = applyLockedPrefix(Array(12).fill(-(drivers.capexAnnual * 1000 * inflationFactor) / 12), actual2026.flow.capex, lockedCount);
       const inversiones = applyLockedPrefix(Array(12).fill(-(drivers.inversionesAnnual * 1000 * inflationFactor) / 12), actual2026.flow.inversiones || zero(), lockedCount);
       const ebitdaPostInv = add(ebitdaFinal, inversiones);
-      const priorSales = baseScenario?.year === "2027" ? presets.cierre2026.er.sales : (baseScenario?.year === "2028" ? presets.esc1.er.sales : (baseScenario?.year === "2029" && presets.esc2028 ? presets.esc2028.er.sales : null));
-      const newProducts = priorSales ? priorSales.map(v => v * (drivers.npPct || 0) / 100) : zero();
-      const newClients = priorSales ? priorSales.map(v => v * (drivers.ncPct || 0) / 100) : zero();
       const workingCapital = applyLockedPrefix(computeWorkingCapital(sales, cogs, dso, dio, dpo, prevYearEndingNwc(baseScenario)), actual2026.flow.workingCapital, lockedCount);
       const fcf = applyLockedPrefix(add(ebitdaBase, taxes, workingCapital, capex, inversiones), actual2026.flow.fcf, lockedCount);
       const openingCash000 = baseScenario?.year === "2027" && !lockedCount ? closing2026Value() : drivers.openingCash * 1000;
@@ -2225,7 +2225,6 @@
       const drivers = state.scenarioEdits[targetId]
         ? withDriverDefaults(clone(state.scenarioEdits[targetId]))
         : withAutoOpeningCash(driversFromScenario(currentScenarioFor(targetId)), base);
-      drivers.salesAnnual = round1(drivers.salesAnnual + ventasNuevas);
       drivers.npPct = Math.min(15, Math.round((Number(drivers.npPct || 0) + pp) * 2) / 2);
       state.scenarioEdits[targetId] = withAutoOpeningCash(drivers, base);
       state.activeId = targetId;
@@ -2326,9 +2325,11 @@
       const infl = 1 + cfg.inflationPct / 100;
       const prevSales = base.er.sales;
       const prevTotal = sum(prevSales);
-      const sales = prevSales.map(v => v * g);
+      const gOrganic = 1 + (cfg.growthPct - cfg.npPct - cfg.ncPct) / 100;
+      const organicSales = prevSales.map(v => v * gOrganic);
       const newProducts = prevSales.map(v => v * cfg.npPct / 100);
       const newClients = prevSales.map(v => v * cfg.ncPct / 100);
+      const sales = add(organicSales, newProducts, newClients);
       const cogsPct = absSum(base.er.cogs) / prevTotal;
       const cogs = sales.map(v => -v * cogsPct);
       const gross = add(sales, cogs);
@@ -2356,7 +2357,7 @@
       const fcfAccum = buildFcfAccum(fcf, cfg.openingCash000, null, 0);
       const drivers = withDriverDefaults({
         seasonalityId: "esc1",
-        salesAnnual: round1(sum(sales) / 1000),
+        salesAnnual: round1(sum(organicSales) / 1000),
         cogsPct: round1(cogsPct * 100),
         payrollAnnual: round1(absSum(payroll) / 1000),
         freightPct: round1(freightPct * 100),
